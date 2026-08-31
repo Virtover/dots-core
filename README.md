@@ -56,19 +56,19 @@ engine.redo()
 
 ## JavaScript / WebAssembly package
 
-Build the WASM bundle for the web or bundler target:
+For a browser page that imports the generated files directly, build the `web` target:
 
 ```bash
-wasm-pack build --target bundler --out-dir pkg --features javascript
+wasm-pack build --target web --out-dir pkg --features javascript
 ```
 
-If the local binaryen optimizer fails on your machine with a bulk-memory validator error, retry without optimization:
+If the local binaryen optimizer fails with a bulk-memory validator error, retry without optimization:
 
 ```bash
-wasm-pack build --target bundler --out-dir pkg --no-opt --features javascript
+wasm-pack build --target web --out-dir pkg --no-opt --features javascript
 ```
 
-Then publish the generated package from the generated folder, or consume it directly in a browser or bundler project:
+Serve the page through HTTP (for example, `python -m http.server 8000`); do not open it with `file://`. The server must return `.wasm` with the `application/wasm` MIME type. Consume the generated web package like this:
 
 ```js
 import init, { JsGameEngine } from "./pkg/dots_core.js";
@@ -78,6 +78,12 @@ const engine = new JsGameEngine(10, 10, true, "dots");
 console.log(engine.currentPlayer);
 console.log(engine.config);
 engine.applyMove(0, 3, 5);
+```
+
+For bundlers such as webpack, Vite, or Rollup, use the separate bundler target instead:
+
+```bash
+wasm-pack build --target bundler --out-dir pkg --features javascript
 ```
 
 ## Publish-ready package checklist
