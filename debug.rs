@@ -9,15 +9,23 @@ pub fn debug_engine(engine: &GameEngine, options: DebugOptions) -> String {
     let mut lines = vec![
         "GameEngine debug view".to_string(),
         format!("size={}x{}", engine.config.width, engine.config.height),
+        format!("scoring_mode={:?}", engine.config.scoring_mode),
         format!("turn={}", engine.turn),
         format!("current_player={}", engine.current_player),
         format!("scores=[{}, {}]", engine.scores[0], engine.scores[1]),
         format!("view_only={}", engine.view_only),
-        "legend: {ab}_{y},{x} where a=owner(x or player_id), b=state(x normal, E edge, player_id blocked_by)".to_string(),
+        "legend: ab where a=owner(x or player_id), b=state(x normal, E edge, player_id blocked_by)".to_string(),
         "board_state:".to_string(),
     ];
 
     lines.extend(format_board_state(&engine.board_state));
+
+    lines.push("edges:".to_string());
+    for (point, edges) in &engine.edges {
+        if !edges.is_empty() {
+            lines.push(format!("{:?}: ({:?})", point, edges));
+        }
+    }
 
     if options.include_history {
         lines.push(format!("past_len={}", engine.past.len()));
@@ -26,7 +34,7 @@ pub fn debug_engine(engine: &GameEngine, options: DebugOptions) -> String {
         lines.extend(format_changes("future", &engine.future));
     }
 
-    lines.join("\n")
+    lines.join("\n") + "\n"
 }
 
 pub fn debug_engine_basic(engine: &GameEngine) -> String {
@@ -38,12 +46,12 @@ fn format_board_state(board_state: &[Vec<PointState>]) -> Vec<String> {
         .iter()
         .enumerate()
         .rev()
-        .map(|(y, row)| {
+        .map(|(_, row)| {
             row.iter()
                 .enumerate()
-                .map(|(x, point_state)| format!("{{{}}}_{y},{x}", board_token(point_state)))
+                .map(|(_, point_state)| format!("{}", board_token(point_state)))
                 .collect::<Vec<_>>()
-                .join(" .. ")
+                .join("  ")
         })
         .collect()
 }
@@ -118,8 +126,7 @@ mod tests {
                 include_history: true,
             },
         );
-        assert!(output.contains("{1E}_0,0"));
-        assert!(output.contains("{x0}_1,1"));
+        assert!(output.contains("xx  xx  xx  xx  xx\nxx  xx  xx  xx  xx\nxx  xx  xx  xx  xx\nxx  x0  xx  xx  xx\n1E  xx  xx  xx  xx\n"));
         assert!(output.contains("past_len=0"));
         assert!(output.contains("future_len=0"));
     }

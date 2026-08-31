@@ -1,8 +1,9 @@
 use serde::{Deserialize, Serialize};
+use std::collections::BTreeSet;
 
 pub type PlayerId = u8;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, PartialOrd, Eq, Hash, Ord, Serialize, Deserialize)]
 pub struct Point {
     pub x: u16,
     pub y: u16,
@@ -14,7 +15,7 @@ impl Point {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]    
 pub struct Move {
     pub player_id: PlayerId,
     pub point: Point,
@@ -87,10 +88,10 @@ impl PointState {
 pub struct Change {
     pub mv: Move,
     pub who_surrounded: Ownership,
-    pub surrounded_points: Vec<Point>,
-    pub edge_points_added: Vec<Point>,
-    pub unsurrounded_points: Vec<Point>,
-    pub edge_points_removed: Vec<Point>,
+    pub surrounded_points: BTreeSet<Point>,
+    pub edge_points_added: BTreeSet<Point>,
+    pub unsurrounded_points: BTreeSet<Point>,
+    pub edge_points_removed: BTreeSet<Point>,
     pub score_changes: [i32; 2], // (player0_score_change, player1_score_change)
 }
 
@@ -98,10 +99,10 @@ impl Change {
     pub fn new(
         mv: Move,
         who_surrounded: Ownership,
-        surrounded_points: Vec<Point>,
-        edge_points_added: Vec<Point>,
-        unsurrounded_points: Vec<Point>,
-        edge_points_removed: Vec<Point>,
+        surrounded_points: BTreeSet<Point>,
+        edge_points_added: BTreeSet<Point>,
+        unsurrounded_points: BTreeSet<Point>,
+        edge_points_removed: BTreeSet<Point>,
         score_changes: [i32; 2],
     ) -> Self {
         Self {
