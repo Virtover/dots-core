@@ -8,6 +8,7 @@ description = "Reusable game backend library for Dots with undo/redo and state p
 [lib]
 name = "dots_core"
 crate-type = ["rlib", "cdylib"]
+path = "lib.rs"
 
 [features]
 default = []
