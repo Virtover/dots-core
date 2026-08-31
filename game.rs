@@ -118,7 +118,7 @@ impl GameEngine {
         }
         Self {
             config,
-            turn: 0,
+            turn: 1,
             current_player: 0,
             scores: [0, 0],
             edges: edges,
@@ -431,7 +431,7 @@ impl GameEngine {
 
         self.past.push(change.clone());
         self.future.clear();
-        self.turn += 1;
+        self.turn += self.current_player as u32;
         self.current_player = (self.current_player + 1) % 2; // Assuming 2 players
 
         Ok(change)
@@ -441,8 +441,8 @@ impl GameEngine {
         if let Some(change) = self.past.pop() {
             self.apply_change(&change, true); // Apply the change in reverse
             self.future.push(change);
-            self.turn -= 1;
             self.current_player = (self.current_player + 1) % 2; // Switch back to previous player
+            self.turn -= self.current_player as u32;
             true
         } else {
             false
@@ -453,7 +453,7 @@ impl GameEngine {
         if let Some(change) = self.future.pop() {
             self.apply_change(&change, false); // Apply the change
             self.past.push(change);
-            self.turn += 1;
+            self.turn += self.current_player as u32;
             self.current_player = (self.current_player + 1) % 2; // Switch to next player
             true
         } else {
