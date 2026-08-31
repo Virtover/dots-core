@@ -19,6 +19,9 @@ use dots_core::{GameConfig, GameEngine, Move, Point, ScoringMode};
 
 let mut engine = GameEngine::new(GameConfig::new(10, 10, true, ScoringMode::Dots));
 engine.apply_move(Move::new(0, Point::new(3, 5)))?;
+engine.apply_move(Move::new(1, Point::new(3, 4)))?;
+engine.apply_move(Move::new(0, Point::new(4, 6)))?;
+engine.apply_move(Move::new(1, Point::new(4, 3)))?;
 engine.undo();
 engine.redo();
 # Ok::<(), dots_core::GameError>(())
