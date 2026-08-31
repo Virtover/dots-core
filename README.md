@@ -21,8 +21,8 @@ Rust library scaffold for a reusable **Dots game backend** (server/client) with:
 ```rust
 use dots_core::{GameConfig, GameEngine, Move, Point};
 
-let mut engine = GameEngine::new(GameConfig::new(4, 4, 2));
-engine.apply_move(Move::new(0, Point::new(0, 0), Point::new(1, 0)))?;
+let mut engine = GameEngine::new(GameConfig::new(10, 10, true, crate::ScoringMode::Dots));
+engine.apply_move(Move::new(0, Point::new(3, 5)));
 engine.undo();
 engine.redo();
 # Ok::<(), dots_core::GameError>(())
