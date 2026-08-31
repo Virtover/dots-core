@@ -1,8 +1,7 @@
 #[cfg(test)]
 mod tests {
     use crate::{
-        DebugOptions, GameConfig, GameEngine, GameError, Move, Ownership, Point, from_json,
-        to_json, debug_engine,
+        DebugOptions, GameConfig, GameEngine, GameError, Move, Ownership, Point, debug_engine,
     };
 
     #[test]
@@ -39,7 +38,7 @@ mod tests {
                 got: 1,
             })
         );
-        assert_eq!(engine.board_state[0][0].ownership, Ownership::None);
+        assert_eq!(engine.board_state()[0][0].ownership, Ownership::None);
 
         engine.apply_move(Move::new(0, Point::new(0, 0))).unwrap();
         assert_eq!(
@@ -48,12 +47,14 @@ mod tests {
         );
 
         let mut blocked = GameEngine::new(GameConfig::new(10, 10, true, crate::ScoringMode::Dots));
-        blocked.board_state[2][2].blocked_by = Ownership::Player(1);
+        let mut state = blocked.board_state();
+        state[2][2].blocked_by = Ownership::Player(1);
+        blocked.set_point_state(2, 2, state[2][2].clone());
         assert_eq!(
             blocked.apply_move(Move::new(0, Point::new(2, 2))),
             Err(GameError::PointBlocked)
         );
-        assert_eq!(blocked.board_state[2][2].blocked_by, Ownership::Player(1));
+        assert_eq!(blocked.board_state()[2][2].blocked_by, Ownership::Player(1));
     }
 
     #[test]

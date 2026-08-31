@@ -84,18 +84,58 @@ pub enum GameError {
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct GameEngine {
-    pub config: GameConfig,
-    pub turn: u32,
-    pub current_player: PlayerId,
-    pub scores: [i32; 2], // (player0_score, player1_score)
-    pub edges: BTreeMap<Point, BTreeSet<Point>>,
-    pub board_state: Vec<Vec<PointState>>,
-    pub past: Vec<Change>,
-    pub future: Vec<Change>,
-    pub view_only: bool,
+    config: GameConfig,
+    turn: u32,
+    current_player: PlayerId,
+    scores: [i32; 2], // (player0_score, player1_score)
+    edges: BTreeMap<Point, BTreeSet<Point>>,
+    board_state: Vec<Vec<PointState>>,
+    past: Vec<Change>,
+    future: Vec<Change>,
+    view_only: bool,
 }
 
 impl GameEngine {
+    pub fn current_player(&self) -> PlayerId {
+        self.current_player
+    }
+
+    pub fn turn(&self) -> u32 {
+        self.turn
+    }
+
+    pub fn scores(&self) -> [i32; 2] {
+        self.scores
+    }
+
+    pub fn config(&self) -> GameConfig {
+        self.config.clone()
+    }
+
+    pub fn view_only(&self) -> bool {
+        self.view_only
+    }
+
+    pub fn edges(&self) -> BTreeMap<Point, BTreeSet<Point>> {
+        self.edges.clone()
+    }
+
+    pub fn board_state(&self) -> Vec<Vec<PointState>> {
+        self.board_state.clone()
+    }
+
+    pub fn past(&self) -> Vec<Change> {
+        self.past.clone()
+    }
+
+    pub fn future(&self) -> Vec<Change> {
+        self.future.clone()
+    }
+
+    pub(crate) fn set_point_state(&mut self, x: u16, y: u16, state: PointState) {
+        self.board_state[y as usize][x as usize] = state;
+    }
+
     pub fn new(config: GameConfig) -> Self {
         let mut board_state =
             vec![vec![PointState::new(); config.width as usize]; config.height as usize];

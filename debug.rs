@@ -6,32 +6,39 @@ pub struct DebugOptions {
 }
 
 pub fn debug_engine(engine: &GameEngine, options: DebugOptions) -> String {
+    let config = engine.config();
+    let scores = engine.scores();
+    let board_state = engine.board_state();
+    let edges = engine.edges();
+    let past = engine.past();
+    let future = engine.future();
+
     let mut lines = vec![
         "GameEngine debug view".to_string(),
-        format!("size={}x{}", engine.config.width, engine.config.height),
-        format!("scoring_mode={:?}", engine.config.scoring_mode),
-        format!("turn={}", engine.turn),
-        format!("current_player={}", engine.current_player),
-        format!("scores=[{}, {}]", engine.scores[0], engine.scores[1]),
-        format!("view_only={}", engine.view_only),
+        format!("size={}x{}", config.width, config.height),
+        format!("scoring_mode={:?}", config.scoring_mode),
+        format!("turn={}", engine.turn()),
+        format!("current_player={}", engine.current_player()),
+        format!("scores=[{}, {}]", scores[0], scores[1]),
+        format!("view_only={}", engine.view_only()),
         "legend: ab where a=owner(x or player_id), b=state(x normal, E edge, player_id blocked_by)".to_string(),
         "board_state:".to_string(),
     ];
 
-    lines.extend(format_board_state(&engine.board_state));
+    lines.extend(format_board_state(&board_state));
 
     lines.push("edges:".to_string());
-    for (point, edges) in &engine.edges {
+    for (point, edges) in &edges {
         if !edges.is_empty() {
             lines.push(format!("{:?}: ({:?})", point, edges));
         }
     }
 
     if options.include_history {
-        lines.push(format!("past_len={}", engine.past.len()));
-        lines.extend(format_changes("past", &engine.past));
-        lines.push(format!("future_len={}", engine.future.len()));
-        lines.extend(format_changes("future", &engine.future));
+        lines.push(format!("past_len={}", past.len()));
+        lines.extend(format_changes("past", &past));
+        lines.push(format!("future_len={}", future.len()));
+        lines.extend(format_changes("future", &future));
     }
 
     lines.join("\n") + "\n"
@@ -117,9 +124,12 @@ mod tests {
     #[test]
     fn debug_engine_prints_board_tokens() {
         let mut engine = crate::GameEngine::new(GameConfig::new(5, 5, false, ScoringMode::Dots));
-        engine.board_state[0][0].ownership = crate::Ownership::Player(1);
-        engine.board_state[0][0].is_edge = true;
-        engine.board_state[1][1].blocked_by = crate::Ownership::Player(0);
+        let mut state = engine.board_state();
+        state[0][0].ownership = crate::Ownership::Player(1);
+        state[0][0].is_edge = true;
+        state[1][1].blocked_by = crate::Ownership::Player(0);
+        engine.set_point_state(0, 0, state[0][0].clone());
+        engine.set_point_state(1, 1, state[1][1].clone());
         let output = debug_engine(
             &engine,
             DebugOptions {
