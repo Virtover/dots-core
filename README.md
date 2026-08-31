@@ -2,6 +2,8 @@
 
 A reusable backend for the Dots game with move validation, surrounding logic, undo/redo history, and serializer helpers for Rust, Python, and JavaScript/WASM builds.
 
+Licensed under the [MIT License](LICENSE).
+
 ## Features
 
 - strict move validation and game-state checks
