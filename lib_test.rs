@@ -1,6 +1,9 @@
 #[cfg(test)]
 mod tests {
-    use crate::{DebugOptions, GameConfig, GameEngine, GameError, Move, Point, from_json, to_json, debug_engine};
+    use crate::{
+        DebugOptions, GameConfig, GameEngine, GameError, Move, Ownership, Point, from_json,
+        to_json, debug_engine,
+    };
 
     #[test]
     fn simple_surround() {
@@ -23,6 +26,34 @@ mod tests {
                 "xx  xx  xx  xx  xx  xx  xx  xx  xx  xx\n",
                 "xx  xx  xx  xx  xx  xx  xx  xx  xx  xx",
         )));
+    }
+
+    #[test]
+    fn basic_move_errors() {
+        let mut engine = GameEngine::new(GameConfig::new(10, 10, true, crate::ScoringMode::Dots));
+
+        assert_eq!(
+            engine.apply_move(Move::new(1, Point::new(0, 0))),
+            Err(GameError::NotCurrentPlayer {
+                expected: 0,
+                got: 1,
+            })
+        );
+        assert_eq!(engine.board_state[0][0].ownership, Ownership::None);
+
+        engine.apply_move(Move::new(0, Point::new(0, 0))).unwrap();
+        assert_eq!(
+            engine.apply_move(Move::new(1, Point::new(0, 0))),
+            Err(GameError::PointOccupied)
+        );
+
+        let mut blocked = GameEngine::new(GameConfig::new(10, 10, true, crate::ScoringMode::Dots));
+        blocked.board_state[2][2].blocked_by = Ownership::Player(1);
+        assert_eq!(
+            blocked.apply_move(Move::new(0, Point::new(2, 2))),
+            Err(GameError::PointBlocked)
+        );
+        assert_eq!(blocked.board_state[2][2].blocked_by, Ownership::Player(1));
     }
 
     #[test]
