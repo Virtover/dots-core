@@ -67,6 +67,7 @@ impl GameConfig {
     }
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum Ownership {
     None,
     Player(PlayerId),
@@ -76,6 +77,7 @@ pub enum Ownership {
 pub struct PointState {
     pub ownership: Ownership,
     pub blocked_by: Ownership,
+    pub is_edge: bool,
 }
 
 impl PointState {
@@ -83,6 +85,7 @@ impl PointState {
         Self {
             ownership: Ownership::None,
             blocked_by: Ownership::None,
+            is_edge: false,
         }
     }
 }
@@ -92,10 +95,10 @@ pub struct Change {
     pub mv: Move,
     pub who_surrounded: Ownership,
     pub surrounded_points: Vec<Point>,
-    pub edges_added: Vec<Edge>,
+    pub edge_points_added: Vec<Point>,
     pub unsurrounded_points: Vec<Point>,
-    pub edges_removed: Vec<Edge>,
-    pub score_changes: (i32, i32), // (player0_score_change, player1_score_change)
+    pub edge_points_removed: Vec<Point>,
+    pub score_changes: [i32; 2], // (player0_score_change, player1_score_change)
 }
 
 impl Change {
@@ -103,18 +106,18 @@ impl Change {
         mv: Move,
         who_surrounded: Ownership,
         surrounded_points: Vec<Point>,
-        edges_added: Vec<Edge>,
+        edge_points_added: Vec<Point>,
         unsurrounded_points: Vec<Point>,
-        edges_removed: Vec<Edge>,
-        score_changes: (i32, i32),
+        edge_points_removed: Vec<Point>,
+        score_changes: [i32; 2],
     ) -> Self {
         Self {
             mv,
             who_surrounded,
             surrounded_points,
-            edges_added,
+            edge_points_added,
             unsurrounded_points,
-            edges_removed,
+            edge_points_removed,
             score_changes,
         }
     }
