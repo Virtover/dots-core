@@ -14,22 +14,6 @@ impl Point {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
-pub struct Edge {
-    pub a: Point,
-    pub b: Point,
-}
-
-impl Edge {
-    pub fn new(a: Point, b: Point) -> Self {
-        if (a.x, a.y) <= (b.x, b.y) {
-            Self { a, b }
-        } else {
-            Self { a: b, b: a }
-        }
-    }
-}
-
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Move {
     pub player_id: PlayerId,

@@ -11,11 +11,10 @@ Rust library scaffold for a reusable **Dots game backend** (server/client) with:
 
 ## Core modules
 
-- `types` – base data structures (`Point`, `Edge`, `Move`, `GameConfig`)
-- `game` – game state, move application, legal moves, engine with undo/redo integration
-- `history` – generic undo/redo timeline
+- `types` – base data structures (`Point`, `Move`, `GameConfig`)
+- `game` – game state, move application, engine with undo/redo integration
 - `debug` – debug snapshots and JSON state dump
-- `persistence` – serialize/deserialize game state (JSON + bincode)
+- `persistence` – serialize/deserialize game history (JSON + bincode)
 
 ## Quick start
 

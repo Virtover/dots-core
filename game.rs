@@ -1,4 +1,4 @@
-use crate::types::{GameConfig, Edge, Ownership, PointState, Change, Move, PlayerId, Point, ScoringMode};
+use crate::types::{GameConfig, Ownership, PointState, Change, Move, PlayerId, Point, ScoringMode};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeSet;
 use thiserror::Error;

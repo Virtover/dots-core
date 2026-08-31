@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod tests {
-    // use crate::{GameConfig, GameEngine, GameError, Move, Point, from_json, to_json};
+    use crate::{GameConfig, GameEngine, GameError, Move, Point, from_json, to_json};
 
     #[test]
     fn apply_move_switches_player_and_turn() {
