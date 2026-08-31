@@ -1,4 +1,4 @@
-use crate::types::{GameConfig, Ownership, PointState, Change, Move, PlayerId, Point, ScoringMode};
+use crate::types::{Change, GameConfig, Move, Ownership, PlayerId, Point, PointState, ScoringMode};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeSet;
 use thiserror::Error;
@@ -35,8 +35,12 @@ impl SChange {
         for change in changes {
             result.surrounded_points.extend(change.surrounded_points);
             result.edge_points_added.extend(change.edge_points_added);
-            result.unsurrounded_points.extend(change.unsurrounded_points);
-            result.edge_points_removed.extend(change.edge_points_removed);
+            result
+                .unsurrounded_points
+                .extend(change.unsurrounded_points);
+            result
+                .edge_points_removed
+                .extend(change.edge_points_removed);
             result.score_changes[0] += change.score_changes[0];
             result.score_changes[1] += change.score_changes[1];
         }
@@ -98,13 +102,15 @@ pub struct GameEngine {
 
 impl GameEngine {
     pub fn new(config: GameConfig) -> Self {
-        let mut board_state = vec![vec![PointState::new(); config.width as usize]; config.height as usize];
+        let mut board_state =
+            vec![vec![PointState::new(); config.width as usize]; config.height as usize];
         if config.initial_central_dots {
             let center_x = config.width / 2;
             let center_y = config.height / 2;
             for y in (center_y - 1)..=(center_y) {
                 for x in (center_x - 1)..=(center_x) {
-                    board_state[y as usize][x as usize].ownership = Ownership::Player((x + y) as u8 % 2); 
+                    board_state[y as usize][x as usize].ownership =
+                        Ownership::Player((x + y) as u8 % 2);
                 }
             }
         }
@@ -135,13 +141,22 @@ impl GameEngine {
     }
 
     fn is_boundary_point(&self, point: &Point) -> bool {
-        point.x == 0 || point.x == self.config.width - 1 || point.y == 0 || point.y == self.config.height - 1
+        point.x == 0
+            || point.x == self.config.width - 1
+            || point.y == 0
+            || point.y == self.config.height - 1
     }
 
     fn is_surrounding_possible(&self, last_placed_dot: &Point) -> bool {
-        assert!(last_placed_dot.x < self.config.width && last_placed_dot.y < self.config.height, "Point is out of bounds");
-        let who_may_surround = self.board_state[last_placed_dot.y as usize][last_placed_dot.x as usize].ownership;
-        if who_may_surround == Ownership::None { return false; }
+        assert!(
+            last_placed_dot.x < self.config.width && last_placed_dot.y < self.config.height,
+            "Point is out of bounds"
+        );
+        let who_may_surround =
+            self.board_state[last_placed_dot.y as usize][last_placed_dot.x as usize].ownership;
+        if who_may_surround == Ownership::None {
+            return false;
+        }
         // todo: explore point states in proper directions
         true
     }
@@ -152,7 +167,11 @@ impl GameEngine {
         for (dx, dy) in directions.iter() {
             let new_x = point.x as i32 + dx;
             let new_y = point.y as i32 + dy;
-            if new_x >= 0 && new_x < self.config.width as i32 && new_y >= 0 && new_y < self.config.height as i32 {
+            if new_x >= 0
+                && new_x < self.config.width as i32
+                && new_y >= 0
+                && new_y < self.config.height as i32
+            {
                 neighbours.push(Point::new(new_x as u16, new_y as u16));
             }
         }
@@ -160,7 +179,10 @@ impl GameEngine {
     }
 
     fn get_schange(&self, point: &Point, who_may_surround: Ownership) -> SChange {
-        assert!(point.x < self.config.width && point.y < self.config.height, "Point is out of bounds");
+        assert!(
+            point.x < self.config.width && point.y < self.config.height,
+            "Point is out of bounds"
+        );
         let who_may_surround_player_id = match who_may_surround {
             Ownership::Player(id) => id,
             _ => panic!("who_may_surround must be a player"),
@@ -193,32 +215,34 @@ impl GameEngine {
             if let Ownership::Player(player_id) = state.ownership {
                 if player_id == who_may_surround_player_id {
                     if state.blocked_by == Ownership::None {
-                        border.insert(current); continue;
+                        border.insert(current);
+                        continue;
                     }
                 } else {
                     any_opponent_dots_found = true;
                 }
             }
 
-            if self.is_boundary_point(&current) { return SChange::empty(); }
+            if self.is_boundary_point(&current) {
+                return SChange::empty();
+            }
 
             possibly_surrounded.insert(current);
             to_check.extend(self.get_neighbours(&current));
         }
 
-        if !any_opponent_dots_found { return SChange::empty(); }
+        if !any_opponent_dots_found {
+            return SChange::empty();
+        }
 
         let mut edge_points_added = BTreeSet::new();
         let mut outer_points = BTreeSet::new();
         let mut to_check: Vec<Point> = (0..self.config.width)
-            .flat_map(|x| [
-                Point::new(x, 0),
-                Point::new(x, self.config.height - 1),
-            ])
-            .chain((0..self.config.height).flat_map(|y| [
-                Point::new(0, y),
-                Point::new(self.config.width - 1, y),
-            ]))
+            .flat_map(|x| [Point::new(x, 0), Point::new(x, self.config.height - 1)])
+            .chain(
+                (0..self.config.height)
+                    .flat_map(|y| [Point::new(0, y), Point::new(self.config.width - 1, y)]),
+            )
             .collect();
 
         while let Some(current) = to_check.pop() {
@@ -227,7 +251,8 @@ impl GameEngine {
             }
 
             if border.contains(&current) {
-                edge_points_added.insert(current); continue;
+                edge_points_added.insert(current);
+                continue;
             }
 
             outer_points.insert(current);
@@ -248,15 +273,15 @@ impl GameEngine {
 
                 let state = &self.board_state[y as usize][x as usize];
 
-                if state.blocked_by == who_may_surround 
-                    || (state.is_edge && state.ownership == who_may_surround) 
+                if state.blocked_by == who_may_surround
+                    || (state.is_edge && state.ownership == who_may_surround)
                 {
                     continue;
-                } 
+                }
 
                 surrounded_points.insert(p);
-                if self.config.scoring_mode == ScoringMode::Territory 
-                    || state.ownership == Ownership::Player((who_may_surround_player_id + 1) % 2) 
+                if self.config.scoring_mode == ScoringMode::Territory
+                    || state.ownership == Ownership::Player((who_may_surround_player_id + 1) % 2)
                 {
                     score_changes[who_may_surround_player_id as usize] += 1;
                 }
@@ -284,12 +309,14 @@ impl GameEngine {
 
     fn apply_change(&mut self, change: &Change, undo: bool) {
         let mv = &change.mv;
-        self.board_state[mv.point.y as usize][mv.point.x as usize].ownership = Ownership::Player(mv.player_id);
+        self.board_state[mv.point.y as usize][mv.point.x as usize].ownership =
+            Ownership::Player(mv.player_id);
         for point in &change.unsurrounded_points {
             self.board_state[point.y as usize][point.x as usize].blocked_by = Ownership::None;
         }
         for point in &change.surrounded_points {
-            self.board_state[point.y as usize][point.x as usize].blocked_by = Ownership::Player(mv.player_id);
+            self.board_state[point.y as usize][point.x as usize].blocked_by =
+                Ownership::Player(mv.player_id);
         }
         for point in &change.edge_points_removed {
             self.board_state[point.y as usize][point.x as usize].is_edge = false;
@@ -297,7 +324,7 @@ impl GameEngine {
         for point in &change.edge_points_added {
             self.board_state[point.y as usize][point.x as usize].is_edge = true;
         }
-        
+
         let mult = if undo { -1 } else { 1 };
         self.scores[0] += mult * change.score_changes[0];
         self.scores[1] += mult * change.score_changes[1];
@@ -332,16 +359,25 @@ impl GameEngine {
             edge_points_removed: Vec::new(),
             score_changes: [0, 0],
         };
-        if !self.is_surrounding_possible(&mv.point) { return Ok(change); } 
+        if !self.is_surrounding_possible(&mv.point) {
+            return Ok(change);
+        }
 
-        self.board_state[mv.point.y as usize][mv.point.x as usize].ownership = Ownership::Player(mv.player_id);
+        self.board_state[mv.point.y as usize][mv.point.x as usize].ownership =
+            Ownership::Player(mv.player_id);
         let neighbours = self.get_neighbours(&mv.point);
-        let schange = SChange::merge(neighbours.iter().map(|n| self.get_schange(n, Ownership::Player(mv.player_id))));
+        let schange = SChange::merge(
+            neighbours
+                .iter()
+                .map(|n| self.get_schange(n, Ownership::Player(mv.player_id))),
+        );
         if !schange.is_empty() {
             change = schange.to_change(mv, Ownership::Player(mv.player_id));
         } else {
             let who_surrounded = Ownership::Player((mv.player_id + 1) % 2);
-            change = self.get_schange(&mv.point, who_surrounded).to_change(mv, who_surrounded);
+            change = self
+                .get_schange(&mv.point, who_surrounded)
+                .to_change(mv, who_surrounded);
         }
 
         self.apply_change(&change, false);

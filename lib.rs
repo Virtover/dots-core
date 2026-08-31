@@ -6,7 +6,9 @@ pub mod types;
 pub use debug::{DebugOptions, debug_engine, debug_engine_basic};
 pub use game::{GameEngine, GameError, GameHistory};
 pub use persistence::{from_bytes, from_json, to_bytes, to_json};
-pub use types::{Edge, GameConfig, Move, PlayerId, Point, Change, Ownership, PointState, ScoringMode};
+pub use types::{
+    Change, Edge, GameConfig, Move, Ownership, PlayerId, Point, PointState, ScoringMode,
+};
 
 #[cfg(test)]
 mod lib_test;

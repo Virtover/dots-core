@@ -57,8 +57,16 @@ pub struct GameConfig {
 }
 
 impl GameConfig {
-    pub const fn new(width: u16, height: u16, initial_central_dots: bool, scoring_mode: ScoringMode) -> Self {
-        assert!(width > 4 && height > 4, "GameConfig dimensions must be greater than 4x4");
+    pub const fn new(
+        width: u16,
+        height: u16,
+        initial_central_dots: bool,
+        scoring_mode: ScoringMode,
+    ) -> Self {
+        assert!(
+            width > 4 && height > 4,
+            "GameConfig dimensions must be greater than 4x4"
+        );
         Self {
             width,
             height,
