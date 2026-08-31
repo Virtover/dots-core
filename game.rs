@@ -200,7 +200,6 @@ impl GameEngine {
         //             store all edges & points surrounded by another player than who_may_surround in surrounded area in separate unsurrounded_points, edges_removed BTreeSets
         //             form edges from points stored in edge-points
         //             return SChange with all these sets; remember to store score changes in score_changes field, depending on scoring mode (dots or territory)
-        // todo
         let mut border = BTreeSet::new();
         let mut possibly_surrounded = BTreeSet::new();
         let mut to_check = vec![*point];
