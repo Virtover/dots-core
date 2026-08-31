@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod tests {
     use crate::{
-        DebugOptions, GameConfig, GameEngine, GameError, Move, Ownership, Point, debug_engine,
+        DebugOptions, GameConfig, GameEngine, GameError, Move, Ownership, Point, debug_engine, from_json, from_bytes, to_json, to_bytes, ScoringMode,
     };
 
     #[test]
@@ -25,6 +25,14 @@ mod tests {
                 "xx  xx  xx  xx  xx  xx  xx  xx  xx  xx\n",
                 "xx  xx  xx  xx  xx  xx  xx  xx  xx  xx",
         )));
+
+        let json = to_json(&engine).unwrap();
+        let mut engine2 = from_json(&json, false).unwrap();
+        engine2.redo();
+        engine2.redo();
+        engine2.redo();
+        engine2.redo();
+        print!("{}", debug_engine(&engine2, DebugOptions::default()));
     }
 
     #[test]

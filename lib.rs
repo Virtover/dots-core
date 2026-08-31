@@ -15,7 +15,7 @@ use pyo3::exceptions::PyValueError;
 #[cfg(feature = "python")]
 use pyo3::prelude::*;
 #[cfg(feature = "python")]
-use pyo3::types::PyDict;
+use pyo3::types::{PyDict, PyType};
 
 #[cfg(feature = "python")]
 fn py_ownership(ownership: Ownership) -> Option<u8> {
@@ -223,6 +223,56 @@ impl PyGameEngine {
         Ok(items.to_object(py))
     }
 
+    fn debug(&self) -> String {
+        debug_engine_basic(&self.inner)
+    }
+
+    fn history(&self, py: Python<'_>) -> PyResult<PyObject> {
+        let history = self.inner.history();
+        let obj = PyDict::new_bound(py);
+        let config = self.config();
+        obj.set_item(
+            "config",
+            (
+                config.width,
+                config.height,
+                config.initial_central_dots,
+                config.scoring_mode.to_string(),
+            ),
+        )?;
+        let moves = history
+            .moves
+            .iter()
+            .map(|change| py_change_dict(py, change))
+            .collect::<PyResult<Vec<_>>>()?;
+        obj.set_item("moves", moves)?;
+        Ok(obj.to_object(py))
+    }
+
+    fn to_json(&self) -> PyResult<String> {
+        crate::to_json(&self.inner).map_err(|err| PyValueError::new_err(err.to_string()))
+    }
+
+    #[classmethod]
+    fn from_json(_cls: &Bound<'_, PyType>, payload: &str, view_only: bool) -> PyResult<Self> {
+        let engine = crate::from_json(payload, view_only).map_err(|err| PyValueError::new_err(err.to_string()))?;
+        Ok(Self {
+            inner: engine,
+        })
+    }
+
+    fn to_bytes(&self) -> PyResult<Vec<u8>> {
+        crate::to_bytes(&self.inner).map_err(|err| PyValueError::new_err(err.to_string()))
+    }
+
+    #[classmethod]
+    fn from_bytes(_cls: &Bound<'_, PyType>, payload: &[u8], view_only: bool) -> PyResult<Self> {
+        let engine = crate::from_bytes(payload, view_only).map_err(|err| PyValueError::new_err(err.to_string()))?;
+        Ok(Self {
+            inner: engine,
+        })
+    }
+
     fn apply_move(&mut self, player_id: u8, x: u16, y: u16) -> PyResult<String> {
         match self.inner.apply_move(Move::new(player_id, Point::new(x, y))) {
             Ok(change) => Ok(format!("{change:?}")),
@@ -420,6 +470,37 @@ impl JsGameEngine {
             items.push(&js_change_object(&change).into());
         }
         items
+    }
+
+    #[wasm_bindgen(js_name = "debug")]
+    pub fn debug(&self) -> String {
+        debug_engine_basic(&self.inner)
+    }
+
+    #[wasm_bindgen(js_name = "history")]
+    pub fn history(&self) -> Object {
+        let history = self.inner.history();
+        let obj = Object::new();
+        let _ = js_sys::Reflect::set(&obj, &"config".into(), &self.config().into());
+        let moves = Array::new();
+        for change in history.moves {
+            moves.push(&js_change_object(&change).into());
+        }
+        let _ = js_sys::Reflect::set(&obj, &"moves".into(), &moves.into());
+        obj
+    }
+
+    #[wasm_bindgen(js_name = "toJson")]
+    pub fn to_json(&self) -> Result<String, JsValue> {
+        crate::to_json(&self.inner).map_err(|err| JsValue::from_str(&err.to_string()))
+    }
+
+    #[wasm_bindgen(js_name = "fromJson")]
+    pub fn from_json(payload: &str, view_only: bool) -> Result<JsGameEngine, JsValue> {
+        let engine = crate::from_json(payload, view_only).map_err(|err| JsValue::from_str(&err.to_string()))?;
+        Ok(JsGameEngine {
+            inner: engine,
+        })
     }
 
     #[wasm_bindgen(js_name = "applyMove")]

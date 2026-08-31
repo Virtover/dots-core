@@ -1,0 +1,27 @@
+[build-system]
+requires = ["maturin>=1.7,<2.0"]
+build-backend = "maturin"
+
+[project]
+name = "dots-core"
+version = "0.1.0"
+description = "Reusable Dots game backend with undo/redo and persisted state support"
+readme = "README.md"
+requires-python = ">=3.8"
+license = { text = "MIT" }
+keywords = ["dots", "game", "backend", "python", "rust", "wasm"]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Rust",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: OS Independent",
+]
+
+[tool.maturin]
+features = ["python"]
+module-name = "dots_core"
+
+[tool.maturin.metadata]
+project_url = [
+  "https://github.com/your-org/dots-core",
+]
