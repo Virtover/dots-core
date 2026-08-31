@@ -3,7 +3,7 @@ pub mod game;
 pub mod persistence;
 pub mod types;
 
-// pub use debug::{DebugSnapshot, debug_snapshot, debug_state_json};
+pub use debug::{DebugOptions, debug_engine, debug_engine_basic};
 pub use game::{GameEngine, GameError, GameHistory};
 pub use persistence::{from_bytes, from_json, to_bytes, to_json};
 pub use types::{Edge, GameConfig, Move, PlayerId, Point, Change, Ownership, PointState, ScoringMode};

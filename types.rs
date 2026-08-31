@@ -42,6 +42,7 @@ impl Move {
     }
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum ScoringMode {
     Dots,
     Territory,
@@ -122,4 +123,3 @@ impl Change {
         }
     }
 }
-

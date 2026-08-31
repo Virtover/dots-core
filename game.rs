@@ -1,4 +1,4 @@
-use crate::types::{GameConfig, Edge, Ownership, PointState, Change, Move, PlayerId, Point, ScoringMode};
+use crate::types::{GameConfig, Ownership, PointState, Change, Move, PlayerId, Point, ScoringMode};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeSet;
 use thiserror::Error;
@@ -98,7 +98,7 @@ pub struct GameEngine {
 
 impl GameEngine {
     pub fn new(config: GameConfig) -> Self {
-        let board_state = vec![vec![PointState::new(); config.width as usize]; config.height as usize];
+        let mut board_state = vec![vec![PointState::new(); config.width as usize]; config.height as usize];
         if config.initial_central_dots {
             let center_x = config.width / 2;
             let center_y = config.height / 2;
@@ -200,7 +200,7 @@ impl GameEngine {
                 }
             }
 
-            if is_boundary_point(&current) { return SChange::empty(); }
+            if self.is_boundary_point(&current) { return SChange::empty(); }
 
             possibly_surrounded.insert(current);
             to_check.extend(self.get_neighbours(&current));
@@ -340,10 +340,11 @@ impl GameEngine {
         if !schange.is_empty() {
             change = schange.to_change(mv, Ownership::Player(mv.player_id));
         } else {
-            change = self.get_schange(&mv.point, Ownership::Player((mv.player_id + 1) % 2));
+            let who_surrounded = Ownership::Player((mv.player_id + 1) % 2);
+            change = self.get_schange(&mv.point, who_surrounded).to_change(mv, who_surrounded);
         }
 
-        apply_change(self, &change, false);
+        self.apply_change(&change, false);
 
         self.past.push(change.clone());
         self.future.clear();
