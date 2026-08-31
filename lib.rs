@@ -113,6 +113,7 @@ impl PyGameConfig {
 #[cfg(feature = "python")]
 #[pymethods]
 impl PyGameEngine {
+    /// Create a mutable game engine. State is exposed through read-only properties.
     #[new]
     fn new(width: u16, height: u16, initial_central_dots: bool, scoring_mode: &str) -> PyResult<Self> {
         let mode = match scoring_mode {
@@ -135,21 +136,25 @@ impl PyGameEngine {
         })
     }
 
+    /// Player whose turn it is: `0` or `1`.
     #[getter]
     fn current_player(&self) -> u8 {
         self.inner.current_player()
     }
 
+    /// One-based turn number. A new engine starts at turn `1`.
     #[getter]
     fn turn(&self) -> u32 {
         self.inner.turn()
     }
 
+    /// Current scores as `[player_0, player_1]`.
     #[getter]
     fn scores(&self, py: Python<'_>) -> PyObject {
         self.inner.scores().to_vec().to_object(py)
     }
 
+    /// Immutable copy of the board configuration.
     #[getter]
     fn config(&self) -> PyGameConfig {
         let c = &self.inner.config();
@@ -162,11 +167,13 @@ impl PyGameEngine {
         }
     }
 
+    /// Whether move operations are disabled for this engine.
     #[getter]
     fn view_only(&self) -> bool {
         self.inner.view_only()
     }
 
+    /// Map each board point to its neighbouring points.
     #[getter]
     fn edges(&self, py: Python<'_>) -> PyResult<PyObject> {
         let result = PyDict::new_bound(py);
@@ -180,6 +187,7 @@ impl PyGameEngine {
         Ok(result.to_object(py))
     }
 
+    /// Board cells with ownership, blocking player, and edge information.
     #[getter]
     fn board_state(&self, py: Python<'_>) -> PyResult<PyObject> {
         let rows = self
@@ -201,6 +209,7 @@ impl PyGameEngine {
         Ok(rows.to_object(py))
     }
 
+    /// Changes already applied, in chronological order.
     #[getter]
     fn past(&self, py: Python<'_>) -> PyResult<PyObject> {
         let items = self
@@ -212,6 +221,7 @@ impl PyGameEngine {
         Ok(items.to_object(py))
     }
 
+    /// Changes available to restore with `redo()`.
     #[getter]
     fn future(&self, py: Python<'_>) -> PyResult<PyObject> {
         let items = self
@@ -223,10 +233,12 @@ impl PyGameEngine {
         Ok(items.to_object(py))
     }
 
+    /// Return a compact human-readable state snapshot for diagnostics.
     fn debug(&self) -> String {
         debug_engine_basic(&self.inner)
     }
 
+    /// Return the serializable configuration and complete move history.
     fn history(&self, py: Python<'_>) -> PyResult<PyObject> {
         let history = self.inner.history();
         let obj = PyDict::new_bound(py);
@@ -249,10 +261,12 @@ impl PyGameEngine {
         Ok(obj.to_object(py))
     }
 
+    /// Serialize the complete game history to JSON.
     fn to_json(&self) -> PyResult<String> {
         crate::to_json(&self.inner).map_err(|err| PyValueError::new_err(err.to_string()))
     }
 
+    /// Restore an engine from JSON. Set `view_only` to prevent new moves.
     #[classmethod]
     fn from_json(_cls: &Bound<'_, PyType>, payload: &str, view_only: bool) -> PyResult<Self> {
         let engine = crate::from_json(payload, view_only).map_err(|err| PyValueError::new_err(err.to_string()))?;
@@ -261,10 +275,12 @@ impl PyGameEngine {
         })
     }
 
+    /// Serialize the complete game history to compact binary data.
     fn to_bytes(&self) -> PyResult<Vec<u8>> {
         crate::to_bytes(&self.inner).map_err(|err| PyValueError::new_err(err.to_string()))
     }
 
+    /// Restore an engine from binary data. Set `view_only` to prevent new moves.
     #[classmethod]
     fn from_bytes(_cls: &Bound<'_, PyType>, payload: &[u8], view_only: bool) -> PyResult<Self> {
         let engine = crate::from_bytes(payload, view_only).map_err(|err| PyValueError::new_err(err.to_string()))?;
@@ -273,6 +289,7 @@ impl PyGameEngine {
         })
     }
 
+    /// Apply a move for `player_id` at board coordinates `(x, y)`.
     fn apply_move(&mut self, player_id: u8, x: u16, y: u16) -> PyResult<String> {
         match self.inner.apply_move(Move::new(player_id, Point::new(x, y))) {
             Ok(change) => Ok(format!("{change:?}")),
@@ -280,10 +297,12 @@ impl PyGameEngine {
         }
     }
 
+    /// Undo the latest applied move and return whether anything changed.
     fn undo(&mut self) -> bool {
         self.inner.undo()
     }
 
+    /// Redo the next move and return whether anything changed.
     fn redo(&mut self) -> bool {
         self.inner.redo()
     }
@@ -366,6 +385,7 @@ pub struct JsGameEngine {
 #[cfg(feature = "javascript")]
 #[wasm_bindgen]
 impl JsGameEngine {
+    /// Create a mutable game engine. State is exposed through read-only properties.
     #[wasm_bindgen(constructor)]
     pub fn new(width: u16, height: u16, initial_central_dots: bool, scoring_mode: &str) -> Result<JsGameEngine, JsValue> {
         let mode = match scoring_mode {
@@ -388,16 +408,19 @@ impl JsGameEngine {
         })
     }
 
+    /// Player whose turn it is: `0` or `1`.
     #[wasm_bindgen(getter, js_name = "currentPlayer")]
     pub fn current_player(&self) -> u8 {
         self.inner.current_player()
     }
 
+    /// One-based turn number. A new engine starts at turn `1`.
     #[wasm_bindgen(getter, js_name = "turn")]
     pub fn turn(&self) -> u32 {
         self.inner.turn()
     }
 
+    /// Current scores as `[player0, player1]`.
     #[wasm_bindgen(getter, js_name = "scores")]
     pub fn scores(&self) -> Array {
         let scores = Array::new();
@@ -407,6 +430,7 @@ impl JsGameEngine {
         scores
     }
 
+    /// Immutable copy of the board configuration.
     #[wasm_bindgen(getter, js_name = "config")]
     pub fn config(&self) -> Object {
         let cfg = self.inner.config();
@@ -418,11 +442,13 @@ impl JsGameEngine {
         obj
     }
 
+    /// Whether move operations are disabled for this engine.
     #[wasm_bindgen(getter, js_name = "viewOnly")]
     pub fn view_only(&self) -> bool {
         self.inner.view_only()
     }
 
+    /// Map each board point to its neighbouring points.
     #[wasm_bindgen(getter, js_name = "edges")]
     pub fn edges(&self) -> Object {
         let root = Object::new();
@@ -437,6 +463,7 @@ impl JsGameEngine {
         root
     }
 
+    /// Board cells with ownership, blocking player, and edge information.
     #[wasm_bindgen(getter, js_name = "boardState")]
     pub fn board_state(&self) -> Array {
         let rows = Array::new();
@@ -454,6 +481,7 @@ impl JsGameEngine {
         rows
     }
 
+    /// Changes already applied, in chronological order.
     #[wasm_bindgen(getter, js_name = "past")]
     pub fn past(&self) -> Array {
         let items = Array::new();
@@ -463,6 +491,7 @@ impl JsGameEngine {
         items
     }
 
+    /// Changes available to restore with `redo()`.
     #[wasm_bindgen(getter, js_name = "future")]
     pub fn future(&self) -> Array {
         let items = Array::new();
@@ -472,11 +501,13 @@ impl JsGameEngine {
         items
     }
 
+    /// Return a compact human-readable state snapshot for diagnostics.
     #[wasm_bindgen(js_name = "debug")]
     pub fn debug(&self) -> String {
         debug_engine_basic(&self.inner)
     }
 
+    /// Return the serializable configuration and complete move history.
     #[wasm_bindgen(js_name = "history")]
     pub fn history(&self) -> Object {
         let history = self.inner.history();
@@ -490,11 +521,13 @@ impl JsGameEngine {
         obj
     }
 
+    /// Serialize the complete game history to JSON.
     #[wasm_bindgen(js_name = "toJson")]
     pub fn to_json(&self) -> Result<String, JsValue> {
         crate::to_json(&self.inner).map_err(|err| JsValue::from_str(&err.to_string()))
     }
 
+    /// Restore an engine from JSON. Set `view_only` to prevent new moves.
     #[wasm_bindgen(js_name = "fromJson")]
     pub fn from_json(payload: &str, view_only: bool) -> Result<JsGameEngine, JsValue> {
         let engine = crate::from_json(payload, view_only).map_err(|err| JsValue::from_str(&err.to_string()))?;
@@ -503,6 +536,7 @@ impl JsGameEngine {
         })
     }
 
+    /// Apply a move for `player_id` at board coordinates `(x, y)`.
     #[wasm_bindgen(js_name = "applyMove")]
     pub fn apply_move(&mut self, player_id: u8, x: u16, y: u16) -> Result<String, JsValue> {
         match self.inner.apply_move(Move::new(player_id, Point::new(x, y))) {
@@ -511,11 +545,13 @@ impl JsGameEngine {
         }
     }
 
+    /// Undo the latest applied move and return whether anything changed.
     #[wasm_bindgen]
     pub fn undo(&mut self) -> bool {
         self.inner.undo()
     }
 
+    /// Redo the next move and return whether anything changed.
     #[wasm_bindgen]
     pub fn redo(&mut self) -> bool {
         self.inner.redo()

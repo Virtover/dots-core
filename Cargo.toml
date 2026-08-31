@@ -5,6 +5,7 @@ edition = "2024"
 license = "MIT"
 description = "Reusable game backend library for Dots with undo/redo and state persistence"
 readme = "README.md"
+repository = "https://github.com/Virtover/dots-core"
 keywords = ["dots", "game", "game-engine", "python", "wasm", "pyo3"]
 categories = ["games", "wasm", "api-bindings"]
 

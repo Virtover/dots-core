@@ -12,6 +12,25 @@ A reusable backend for the Dots game with move validation, surrounding logic, un
 - JSON + binary serialization helpers
 - Rust core library with optional Python and JavaScript exports
 
+## Documentation
+
+- [Architecture and data flow](docs/architecture.md)
+- [Generated JavaScript API](pkg/dots_core.d.ts)
+
+The API comments are part of the generated bindings. Your editor can show them as tooltips when you use the Rust crate, the Python extension, or the JavaScript/TypeScript package.
+
+## Shared API
+
+| Concept | Rust | Python | JavaScript |
+| --- | --- | --- | --- |
+| Create engine | `GameEngine::new` | `PyGameEngine(...)` | `new JsGameEngine(...)` |
+| Apply move | `apply_move` | `apply_move` | `applyMove` |
+| Undo / redo | `undo` / `redo` | `undo` / `redo` | `undo` / `redo` |
+| Current player | `current_player()` | `current_player` | `currentPlayer` |
+| Board edges | `edges()` | `edges` | `edges` |
+| Debug snapshot | `debug_engine_basic` | `debug()` | `debug()` |
+| JSON persistence | `to_json` / `from_json` | `to_json` / `from_json` | `toJson` / `fromJson` |
+
 ## Rust usage
 
 ```rust
@@ -55,6 +74,12 @@ print(engine.edges)
 engine.apply_move(0, 3, 5)
 engine.undo()
 engine.redo()
+
+snapshot = engine.debug()
+saved = engine.to_json()
+replay = dots_core.PyGameEngine.from_json(saved, True)
+print(snapshot)
+print(replay.view_only)
 ```
 
 ## JavaScript / WebAssembly package
@@ -81,6 +106,10 @@ const engine = new JsGameEngine(10, 10, true, "dots");
 console.log(engine.currentPlayer);
 console.log(engine.config);
 engine.applyMove(0, 3, 5);
+console.log(engine.debug());
+const saved = engine.toJson();
+const replay = JsGameEngine.fromJson(saved, true);
+console.log(replay.viewOnly);
 ```
 
 For bundlers such as webpack, Vite, or Rollup, use the separate bundler target instead:
@@ -110,3 +139,4 @@ Before publishing, confirm:
 - `game` — engine logic, validation, scoring, history, undo/redo
 - `persistence` — JSON and binary serialization helpers
 - `debug` — inspectable engine state output for testing and diagnostics
+- `docs/architecture.md` — engine lifecycle, state ownership, and build targets

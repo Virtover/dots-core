@@ -17,11 +17,9 @@ classifiers = [
   "Operating System :: OS Independent",
 ]
 
+[project.urls]
+Repository = "https://github.com/Virtover/dots-core"
+
 [tool.maturin]
 features = ["python"]
 module-name = "dots_core"
-
-[tool.maturin.metadata]
-project_url = [
-  "https://github.com/your-org/dots-core",
-]
