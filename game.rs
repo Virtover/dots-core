@@ -401,7 +401,7 @@ impl GameEngine {
         }
         for point in epr {
             self.board_state[point.y as usize][point.x as usize].is_edge = false;
-            self.edges.get_mut(point).unwrap().clear();
+            self.edges.get_mut(point).unwrap().retain(|&n| !epa.contains(&n));
         }
         for point in epa {
             self.board_state[point.y as usize][point.x as usize].is_edge = true;

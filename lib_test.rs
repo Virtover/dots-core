@@ -5,12 +5,19 @@ mod tests {
     };
 
     #[test]
-    fn simple_surround() {
+    fn surround_and_persistence() {
         let mut engine = GameEngine::new(GameConfig::new(10, 10, true, crate::ScoringMode::Territory));
         engine.apply_move(Move::new(0, Point::new(3, 5))).unwrap();
         engine.apply_move(Move::new(1, Point::new(3, 4))).unwrap();
         engine.apply_move(Move::new(0, Point::new(4, 6))).unwrap();
         engine.apply_move(Move::new(1, Point::new(4, 3))).unwrap();
+        print!("{}", debug_engine(&engine, DebugOptions::default()));
+        let json = to_json(&engine).unwrap();
+        let mut engine = from_json(&json, false).unwrap();
+        engine.redo();
+        engine.redo();
+        engine.redo();
+        engine.redo();
         print!("{}", debug_engine(&engine, DebugOptions::default()));
         assert!(debug_engine(&engine, DebugOptions::default()).contains(
             concat!(
@@ -25,14 +32,27 @@ mod tests {
                 "xx  xx  xx  xx  xx  xx  xx  xx  xx  xx\n",
                 "xx  xx  xx  xx  xx  xx  xx  xx  xx  xx",
         )));
-
-        let json = to_json(&engine).unwrap();
-        let mut engine2 = from_json(&json, false).unwrap();
-        engine2.redo();
-        engine2.redo();
-        engine2.redo();
-        engine2.redo();
-        print!("{}", debug_engine(&engine2, DebugOptions::default()));
+        engine.apply_move(Move::new(0, Point::new(6, 4))).unwrap();
+        engine.apply_move(Move::new(1, Point::new(4, 7))).unwrap();
+        engine.apply_move(Move::new(0, Point::new(5, 3))).unwrap();
+        print!("{}", debug_engine(&engine, DebugOptions::default()));
+        assert!(debug_engine(&engine, DebugOptions::default()).contains(
+            concat!(
+                "xx  xx  xx  xx  xx  xx  xx  xx  xx  xx\n",
+                "xx  xx  xx  xx  xx  xx  xx  xx  xx  xx\n",
+                "xx  xx  xx  xx  1x  xx  xx  xx  xx  xx\n",
+                "xx  xx  xx  xx  0E  xx  xx  xx  xx  xx\n",
+                "xx  xx  xx  0E  10  0E  xx  xx  xx  xx\n",
+                "xx  xx  xx  1x  0E  10  0E  xx  xx  xx\n",
+                "xx  xx  xx  xx  1x  0E  xx  xx  xx  xx\n",
+                "xx  xx  xx  xx  xx  xx  xx  xx  xx  xx\n",
+                "xx  xx  xx  xx  xx  xx  xx  xx  xx  xx\n",
+                "xx  xx  xx  xx  xx  xx  xx  xx  xx  xx",
+        )));
+        assert!(engine.edges().get(&Point::new(4, 4)).unwrap().contains(&Point::new(3, 5)));
+        assert!(engine.edges().get(&Point::new(3, 5)).unwrap().contains(&Point::new(4, 4)));
+        assert!(engine.edges().get(&Point::new(5, 5)).unwrap().contains(&Point::new(4, 6)));
+        assert!(engine.edges().get(&Point::new(4, 6)).unwrap().contains(&Point::new(5, 5)));
     }
 
     #[test]
@@ -66,7 +86,7 @@ mod tests {
     }
 
     #[test]
-    fn nested_surround1_undo_redo() {
+    fn nested_surround_undo_redo() {
         let mut engine = GameEngine::new(GameConfig::new(10, 10, true, crate::ScoringMode::Dots));
         engine.apply_move(Move::new(0, Point::new(3, 5))).unwrap();
         engine.apply_move(Move::new(1, Point::new(3, 4))).unwrap();
